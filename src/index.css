@@ -1,5 +1,4 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   text-align: center;
@@ -10,6 +9,8 @@
 }
 
 body {
+  font-family: "DM Sans", system-ui, Avenir, Helvetica, Arial, sans-serif;
+
   display: flex;
   min-width: 320px;
   min-height: 100vh;
@@ -21,4 +22,10 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+}
+
+.text-main {
+  font-family: "Crimson Text", serif;
+  font-weight: 600;
+  color: #404E82;
 }

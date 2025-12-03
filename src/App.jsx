@@ -24,7 +24,7 @@ function App() {
         <div className="container">
           <div className="row gap-4">
             <div className="col-12 col-lg g-0 d-flex justify-content-center align-items-center flex-column">
-              <h1>Portal de Eventos UEPA</h1>
+              <h1 className="text-main">Portal de Eventos UEPA</h1>
               <p>
                 Nossa universidade é palco de iniciativas que inspiram, conectam
                 e transformam. Aqui, você encontra os principais eventos
