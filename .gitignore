@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+/uepa_connect/node_modules/
+/uepa_connect/dist/
+/uepa_connect/.env
+/uepa_connect/.vite
+/uepa_connect/.DS_Store
+
+/uepa_connect_backend/node_modules/
+/uepa_connect_backend/.env
+/uepa_connect_backend/.DS_Store

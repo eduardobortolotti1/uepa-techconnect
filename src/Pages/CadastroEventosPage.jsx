@@ -94,9 +94,7 @@ function CadastroEventosPage() {
 
     if (Object.keys(newErrors).length > 0) return;
 
-    // -----------------------------
     // ENVIO PARA O BACKEND
-    // -----------------------------
     try {
       setLoading(true);
 
