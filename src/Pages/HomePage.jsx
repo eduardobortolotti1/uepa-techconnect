@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import uepaLogo from "../assets/images/UEPA_1.png";
 import uepaImage from "../assets/images/Uepa_foto.png";
 import styled from "styled-components";
@@ -29,6 +30,24 @@ const EventosSection = styled.div`
 
 function HomePage() {
   const navigate = useNavigate();
+  const [eventos, setEventos] = useState([]);
+
+  // -------------------------------
+  // Carrega eventos do backend
+  // -------------------------------
+  useEffect(() => {
+    async function fetchEventos() {
+      try {
+        const res = await fetch("http://localhost:3000/eventos");
+        const data = await res.json();
+        setEventos(data);
+      } catch (err) {
+        console.error("Erro ao carregar eventos:", err);
+      }
+    }
+
+    fetchEventos();
+  }, []);
 
   return (
     <>
@@ -37,19 +56,18 @@ function HomePage() {
           Admin
         </button>
       </TopBar>
+
       <Header className="border">
         <div className="container">
           <div className="row gap-4">
             <div className="col-12 col-lg g-0 d-flex justify-content-center align-items-center flex-column">
               <h1 className="text-main">Portal de Eventos UEPA</h1>
               <p>
-                Nossa universidade é palco de iniciativas que inspiram, conectam
-                e transformam. Aqui, você encontra os principais eventos
-                acadêmicos, culturais e científicos que fazem parte do nosso dia
-                a dia. Explore, participe e viva a experiência de estar onde o
-                conhecimento acontece.
+                Nossa universidade é palco de iniciativas que inspiram,
+                conectam e transformam.
               </p>
             </div>
+
             <div className="col-12 col-lg g-0">
               <img src={uepaImage} className="w-100 h-100 object-fit-cover" />
             </div>
@@ -60,100 +78,28 @@ function HomePage() {
       <section id="eventos">
         <EventosSection>
           <h2 className="text-center mb-4">Próximos Eventos</h2>
+
           <div className="container">
             <div className="row g-4">
-              <Evento
-                className="evento col-12 col-md-6"
-                titulo="Workshop – Criação de Sites Profissionais"
-                descricao="Workshop intensivo para aprender os fundamentos de HTML, CSS, JS e como publicar um site."
-                data="02 de abril de 2025 – 14h às 17h"
-                apresentadores="João Martins, Prof. Elisa Ramos"
-                vagas={25}
-                contato="suporte@webacademy.org | (21) 98822-4433"
-                onInscrever={() => console.log("Inscrito!")}
-              />
-              <Evento
-                className="evento col-12 col-md-6"
-                titulo="Workshop – Criação de Sites Profissionais"
-                descricao="Workshop intensivo para aprender os fundamentos de HTML, CSS, JS e como publicar um site."
-                data="02 de abril de 2025 – 14h às 17h"
-                apresentadores="João Martins, Prof. Elisa Ramos"
-                vagas={25}
-                contato="suporte@webacademy.org | (21) 98822-4433"
-                onInscrever={() => console.log("Inscrito!")}
-              />
-            </div>
 
-            <div className="row g-4 mt-3">
-              <Evento
-                className="evento col-12 col-md-6"
-                titulo="Workshop – Criação de Sites Profissionais"
-                descricao="Workshop intensivo para aprender os fundamentos de HTML, CSS, JS e como publicar um site."
-                data="02 de abril de 2025 – 14h às 17h"
-                apresentadores="João Martins, Prof. Elisa Ramos"
-                vagas={25}
-                contato="suporte@webacademy.org | (21) 98822-4433"
-                onInscrever={() => console.log("Inscrito!")}
-              />
+              {eventos.length === 0 && (
+                <p className="text-center">Nenhum evento encontrado.</p>
+              )}
 
-              <Evento
-                className="evento col-12 col-md-6"
-                titulo="Workshop – Criação de Sites Profissionais"
-                descricao="Workshop intensivo para aprender os fundamentos de HTML, CSS, JS e como publicar um site."
-                data="02 de abril de 2025 – 14h às 17h"
-                apresentadores="João Martins, Prof. Elisa Ramos"
-                vagas={25}
-                contato="suporte@webacademy.org | (21) 98822-4433"
-                onInscrever={() => console.log("Inscrito!")}
-              />
-            </div>
+              {eventos.map((ev) => (
+                <Evento
+                  key={ev.id}
+                  className="evento col-12 col-md-6"
+                  titulo={ev.titulo}
+                  descricao={ev.descricao}
+                  data={ev.data}
+                  apresentadores={ev.apresentadores}
+                  vagas={ev.vagasrestantes}
+                  contato={ev.contato}
+                  onInscrever={() => console.log("Inscrito!")}
+                />
+              ))}
 
-            <div className="row g-4 mt-3">
-              <Evento
-                className="evento col-12 col-md-6"
-                titulo="Workshop – Criação de Sites Profissionais"
-                descricao="Workshop intensivo para aprender os fundamentos de HTML, CSS, JS e como publicar um site."
-                data="02 de abril de 2025 – 14h às 17h"
-                apresentadores="João Martins, Prof. Elisa Ramos"
-                vagas={25}
-                contato="suporte@webacademy.org | (21) 98822-4433"
-                onInscrever={() => console.log("Inscrito!")}
-              />
-
-              <Evento
-                className="evento col-12 col-md-6"
-                titulo="Workshop – Criação de Sites Profissionais"
-                descricao="Workshop intensivo para aprender os fundamentos de HTML, CSS, JS e como publicar um site."
-                data="02 de abril de 2025 – 14h às 17h"
-                apresentadores="João Martins, Prof. Elisa Ramos"
-                vagas={25}
-                contato="suporte@webacademy.org | (21) 98822-4433"
-                onInscrever={() => console.log("Inscrito!")}
-              />
-            </div>
-
-            <div className="row g-4 mt-3">
-              <Evento
-                className="evento col-12 col-md-6"
-                titulo="Workshop – Criação de Sites Profissionais"
-                descricao="Workshop intensivo para aprender os fundamentos de HTML, CSS, JS e como publicar um site."
-                data="02 de abril de 2025 – 14h às 17h"
-                apresentadores="João Martins, Prof. Elisa Ramos"
-                vagas={25}
-                contato="suporte@webacademy.org | (21) 98822-4433"
-                onInscrever={() => console.log("Inscrito!")}
-              />
-
-              <Evento
-                className="evento col-12 col-md-6"
-                titulo="Workshop – Criação de Sites Profissionais"
-                descricao="Workshop intensivo para aprender os fundamentos de HTML, CSS, JS e como publicar um site."
-                data="02 de abril de 2025 – 14h às 17h"
-                apresentadores="João Martins, Prof. Elisa Ramos"
-                vagas={25}
-                contato="suporte@webacademy.org | (21) 98822-4433"
-                onInscrever={() => console.log("Inscrito!")}
-              />
             </div>
           </div>
         </EventosSection>
