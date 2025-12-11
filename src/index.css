@@ -6,6 +6,7 @@
 
 #root {
   margin: 0 auto;
+  width: 100%;
 }
 
 body {
@@ -28,4 +29,8 @@ h1 {
   font-family: "Crimson Text", serif;
   font-weight: 600;
   color: #404E82;
+}
+
+.evento_cadastro {
+  max-width: 500px;
 }
