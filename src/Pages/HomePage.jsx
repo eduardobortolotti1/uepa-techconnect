@@ -4,6 +4,7 @@ import uepaImage from "../assets/images/Uepa_foto.png";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Evento from "../components/Evento";
+import NewsCard from "../components/NewsCard";
 
 const TopBar = styled.div`
   background-color: #312783;
@@ -22,6 +23,13 @@ const Header = styled.header`
   height: fit-content !important;
 `;
 
+const NoticiasSection = styled.div`
+  margin: 20px 70px 20px 70px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+`;
+
 const EventosSection = styled.div`
   margin: 20px 70px 20px 70px;
   background-color: #c4d2eb;
@@ -31,6 +39,7 @@ const EventosSection = styled.div`
 function HomePage() {
   const navigate = useNavigate();
   const [eventos, setEventos] = useState([]);
+  const [noticias, setNoticias] = useState([]);
 
   // -------------------------------
   // Carrega eventos do backend
@@ -45,9 +54,31 @@ function HomePage() {
         console.error("Erro ao carregar eventos:", err);
       }
     }
-
     fetchEventos();
   }, []);
+
+  // -------------------------------
+  // Carrega notícias do backend
+  // -------------------------------
+  useEffect(() => {
+    async function fetchNoticias() {
+      try {
+        const res = await fetch("http://localhost:3000/noticias");
+        const data = await res.json();
+        setNoticias(data);
+      } catch (err) {
+        console.error("Erro ao carregar notícias:", err);
+      }
+    }
+    fetchNoticias();
+  }, []);
+
+  // -------------------------------
+  // Navega para página de inscrição com ID do evento
+  // -------------------------------
+  function handleInscrever(eventoId) {
+    navigate(`/inscricao/${eventoId}`);
+  }
 
   return (
     <>
@@ -67,7 +98,6 @@ function HomePage() {
                 conectam e transformam.
               </p>
             </div>
-
             <div className="col-12 col-lg g-0">
               <img src={uepaImage} className="w-100 h-100 object-fit-cover" />
             </div>
@@ -75,17 +105,34 @@ function HomePage() {
         </div>
       </Header>
 
+      {/* SEÇÃO DE NOTÍCIAS */}
+      {noticias.length > 0 && (
+        <section id="noticias">
+          <NoticiasSection>
+            <h2 className="text-center mb-4">Notícias e Avisos</h2>
+            <div className="container">
+              {noticias.map((noticia) => (
+                <NewsCard
+                  key={noticia.id}
+                  titulo={noticia.titulo}
+                  texto={noticia.texto}
+                  data={noticia.data_criacao}
+                />
+              ))}
+            </div>
+          </NoticiasSection>
+        </section>
+      )}
+
+      {/* SEÇÃO DE EVENTOS */}
       <section id="eventos">
         <EventosSection>
           <h2 className="text-center mb-4">Próximos Eventos</h2>
-
           <div className="container">
             <div className="row g-4">
-
               {eventos.length === 0 && (
                 <p className="text-center">Nenhum evento encontrado.</p>
               )}
-
               {eventos.map((ev) => (
                 <Evento
                   key={ev.id}
@@ -96,10 +143,9 @@ function HomePage() {
                   apresentadores={ev.apresentadores}
                   vagas={ev.vagasrestantes}
                   contato={ev.contato}
-                  onInscrever={() => console.log("Inscrito!")}
+                  onInscrever={() => handleInscrever(ev.id)}
                 />
               ))}
-
             </div>
           </div>
         </EventosSection>

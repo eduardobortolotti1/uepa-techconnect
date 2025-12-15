@@ -1,6 +1,6 @@
-import { useState } from "react";
 import styled from "styled-components";
 import Evento from "../components/Evento";
+import { useEffect, useState } from "react";
 
 const MainDiv = styled.div`
   padding: 30px;
@@ -29,105 +29,102 @@ const VoltarButton = styled.button`
   display: inline-block;
 `;
 
-const FormularioCadastroEvento = styled.form`
-  max-width: 520px;
+const FormularioCadastroEvento = styled.div`
+  width: 520px;
 `;
 
 function CadastroEventosPage() {
-  const [titulo, setTitulo] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [data, setData] = useState("");
-  const [apresentadores, setApresentadores] = useState("");
-  const [vagas, setVagas] = useState("");
-  const [contato, setContato] = useState("");
-
-  const [erros, setErros] = useState({});
-  const [loading, setLoading] = useState(false);
-
-  function validarEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-
-  function validarData(dataStr) {
-    const iso = /^\d{4}-\d{2}-\d{2}$/;
-    const br = /^\d{2}\/\d{2}\/\d{4}$/;
-
-    if (iso.test(dataStr)) {
-      const d = new Date(dataStr);
-      return !isNaN(d.getTime());
-    }
-
-    if (br.test(dataStr)) {
-      const [dia, mes, ano] = dataStr.split("/").map(Number);
-      const d = new Date(ano, mes - 1, dia);
-      return (
-        d.getFullYear() === ano &&
-        d.getMonth() === mes - 1 &&
-        d.getDate() === dia
-      );
-    }
-
-    return false;
-  }
-
-  async function handleSubmit(e) {
+  async function cadastrarEvento(e) {
     e.preventDefault();
 
-    let newErrors = {};
-
-    if (!titulo.trim()) newErrors.titulo = "O título não pode estar vazio.";
-    if (!descricao.trim()) newErrors.descricao = "A descrição não pode estar vazia.";
-    if (!data.trim()) {
-      newErrors.data = "A data não pode estar vazia.";
-    } else if (!validarData(data)) {
-      newErrors.data = "Data inválida (use dd/mm/yyyy ou yyyy-mm-dd).";
-    }
-    if (!apresentadores.trim()) newErrors.apresentadores = "Campo obrigatório.";
-    if (!vagas || Number(vagas) <= 0) newErrors.vagas = "Informe um número válido.";
-    if (!contato.trim()) {
-      newErrors.contato = "O contato não pode estar vazio.";
-    } else if (!validarEmail(contato)) {
-      newErrors.contato = "Informe um email válido.";
-    }
-
-    setErros(newErrors);
-
-    if (Object.keys(newErrors).length > 0) return;
-
-    // -----------------------------
-    // ENVIO PARA O BACKEND
-    // -----------------------------
     try {
-      setLoading(true);
-
-      const response = await fetch("http://localhost:3000/cadastroEvento", {
+      const resp = await fetch("http://localhost:3000/cadastroEvento", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          titulo,
-          descricao,
-          data,
-          apresentadores,
-          vagas: Number(vagas),
-          contato
-        })
+          titulo: formData.titulo,
+          descricao: formData.descricao,
+          data: formData.data,
+          apresentadores: formData.apresentadores,
+          vagas: Number(formData.vagas),
+          contato: formData.contato,
+        }),
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        alert("Erro no servidor: " + result.message);
-      } else {
-        alert("Evento cadastrado com sucesso!");
+      if (!resp.ok) {
+        throw new Error("Erro ao cadastrar evento");
       }
 
+      alert("Evento cadastrado com sucesso!");
+
+      // Limpa formulário
+      setFormData({
+        titulo: "",
+        descricao: "",
+        data: "",
+        apresentadores: "",
+        vagas: "",
+        contato: "",
+      });
+
+      // Atualiza lista
+      buscarEventos();
     } catch (err) {
-      alert("Erro ao conectar com o servidor.");
-    } finally {
-      setLoading(false);
+      console.error(err);
+      alert("Erro ao cadastrar evento");
     }
+  }
+
+  const [formData, setFormData] = useState({
+    titulo: "",
+    descricao: "",
+    data: "",
+    apresentadores: "",
+    vagas: "",
+    contato: "",
+  });
+
+  // LISTA DE EVENTOS DO BANCO
+  const [listaEventos, setListaEventos] = useState([]);
+
+  // BUSCAR EVENTOS DO BACKEND
+  async function buscarEventos() {
+    try {
+      const resp = await fetch("http://localhost:3000/eventos");
+      const data = await resp.json();
+      setListaEventos(data);
+    } catch (err) {
+      console.error("Erro ao buscar eventos", err);
+    }
+  }
+
+  useEffect(() => {
+    buscarEventos();
+  }, []);
+
+  // EXCLUIR EVENTO
+  async function excluirEvento(id) {
+    if (!window.confirm("Tem certeza que deseja excluir este evento?")) return;
+
+    try {
+      const resp = await fetch(`http://localhost:3000/eventos/${id}`, {
+        method: "DELETE",
+      });
+
+      if (resp.ok) {
+        alert("Evento excluído com sucesso!");
+        buscarEventos();
+      }
+    } catch (err) {
+      console.error("Erro ao excluir", err);
+    }
+  }
+
+  // ATUALIZAÇÃO FORMULÁRIO DINÂMICO
+  function atualizarCampo(e) {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   }
 
   return (
@@ -145,97 +142,124 @@ function CadastroEventosPage() {
         <h1 className="mb-3">Cadastrar novo evento</h1>
         <hr className="w-100 mb-4" />
 
-        <Evento
-          titulo={titulo || "Título ainda não definido"}
-          descricao={descricao || "Descrição ainda não definida"}
-          data={data || "Data não informada"}
-          apresentadores={apresentadores || "Apresentadores não definidos"}
-          vagas={vagas || 0}
-          contato={contato || "Contato não informado"}
-          onInscrever={() => console.log("Inscrito!")}
-        />
+        {/* FORMULÁRIO MANTIDO */}
 
-        <FormularioCadastroEvento
-          className="w-100 d-flex flex-column gap-3"
-          onSubmit={handleSubmit}
-        >
-          <div>
-            <label className="form-label">Título do evento</label>
-            <input
-              type="text"
-              className="form-control"
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
-            />
-            {erros.titulo && <small className="text-danger">{erros.titulo}</small>}
-          </div>
+        <FormularioCadastroEvento>
+          <Evento
+            className="evento"
+            titulo={formData.titulo || "Título do Evento"}
+            descricao={formData.descricao || "Descrição..."}
+            data={formData.data || "Data do evento"}
+            apresentadores={formData.apresentadores || "Apresentador(es)"}
+            vagas={formData.vagas || 0}
+            contato={formData.contato || "Contato"}
+            onInscrever={() => {}}
+          />
 
-          <div>
-            <label className="form-label">Descrição do evento</label>
-            <textarea
-              className="form-control"
-              rows="2"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-            ></textarea>
-            {erros.descricao && <small className="text-danger">{erros.descricao}</small>}
-          </div>
-
-          <div>
-            <label className="form-label">Data</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="dd/mm/yyyy ou yyyy-mm-dd"
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-            />
-            {erros.data && <small className="text-danger">{erros.data}</small>}
-          </div>
-
-          <div>
-            <label className="form-label">Apresentadores</label>
-            <input
-              type="text"
-              className="form-control"
-              value={apresentadores}
-              onChange={(e) => setApresentadores(e.target.value)}
-            />
-            {erros.apresentadores && (
-              <small className="text-danger">{erros.apresentadores}</small>
-            )}
-          </div>
-
-          <div>
-            <label className="form-label">Vagas</label>
-            <input
-              type="number"
-              className="form-control"
-              value={vagas}
-              onChange={(e) => setVagas(e.target.value)}
-            />
-            {erros.vagas && <small className="text-danger">{erros.vagas}</small>}
-          </div>
-
-          <div>
-            <label className="form-label">Contato (email)</label>
-            <input
-              type="email"
-              className="form-control"
-              value={contato}
-              onChange={(e) => setContato(e.target.value)}
-            />
-            {erros.contato && <small className="text-danger">{erros.contato}</small>}
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary w-100 mt-3"
-            disabled={loading}
+          {/* FORMULÁRIO */}
+          <form
+            className="w-100 d-flex flex-column gap-3"
+            onSubmit={cadastrarEvento}
           >
-            {loading ? "Enviando..." : "Cadastrar Evento"}
-          </button>
+            <div>
+              <label className="form-label">Título do evento</label>
+              <input
+                name="titulo"
+                type="text"
+                className="form-control"
+                onChange={atualizarCampo}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Descrição do evento</label>
+              <textarea
+                name="descricao"
+                className="form-control"
+                rows="2"
+                onChange={atualizarCampo}
+              ></textarea>
+            </div>
+
+            <div>
+              <label className="form-label">Data</label>
+              <input
+                name="data"
+                type="text"
+                className="form-control"
+                onChange={atualizarCampo}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Apresentadores</label>
+              <input
+                name="apresentadores"
+                type="text"
+                className="form-control"
+                onChange={atualizarCampo}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Vagas</label>
+              <input
+                name="vagas"
+                type="number"
+                className="form-control"
+                onChange={atualizarCampo}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Contato</label>
+              <input
+                name="contato"
+                type="text"
+                className="form-control"
+                onChange={atualizarCampo}
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary w-100 mt-3">
+              Cadastrar Evento
+            </button>
+          </form>
         </FormularioCadastroEvento>
+      </SubDiv>
+
+      {/* LISTAGEM DOS EVENTOS ABAIXO DO FORMULÁRIO */}
+      <SubDiv className="mt-4 w-100">
+        <h2 className="mb-3">Eventos cadastrados</h2>
+        <hr className="w-100 mb-4" />
+
+        <div className="container">
+          <div className="row g-4">
+            {listaEventos.map((ev) => (
+              <div key={ev.id} className="col-12 col-md-6">
+                <div className="h-100 d-flex flex-column">
+                  <Evento
+                    className="evento flex-grow-1"
+                    titulo={ev.titulo}
+                    descricao={ev.descricao}
+                    data={ev.data}
+                    apresentadores={ev.apresentadores}
+                    vagas={ev.vagasrestantes}
+                    contato={ev.contato}
+                    onInscrever={() => {}}
+                  />
+
+                  <button
+                    className="btn btn-danger w-100 mt-2"
+                    onClick={() => excluirEvento(ev.id)}
+                  >
+                    Excluir evento
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </SubDiv>
     </MainDiv>
   );
